@@ -1,6 +1,6 @@
 {
   "name": "lacona-phrase-repeat",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "lacona phrase for handling repeating language",
   "main": "lib/repeat.js",
   "directories": {
