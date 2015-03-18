@@ -1,0 +1,46 @@
+{
+  "name": "lacona-phrase-repeat",
+  "version": "0.0.1",
+  "description": "lacona phrase for handling repeating language",
+  "main": "lib/repeat.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "babel": "^4.7.16",
+    "chai": "^2.1.2",
+    "lacona": "^0.21.0",
+    "lacona-phrase": "^0.6.1",
+    "lodash": "^3.5.0",
+    "rimraf": "^2.3.2"
+  },
+  "devDependencies": {
+    "lacona-util-fulltext": "^0.2.0",
+    "mocha": "^2.2.1"
+  },
+  "scripts": {
+    "pretest": "babel test --out-dir tmp",
+    "test": "mocha tmp",
+    "build": "babel src --out-dir lib",
+    "validate": "npm run build && npm test",
+    "clean": "rimraf lib tmp",
+    "prepublish": "npm run clean && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brandonhorst/lacona-phrase-repeat.git"
+  },
+  "keywords": [
+    "lacona",
+    "repeat",
+    "repeating",
+    "phrase",
+    "lacona-phrase"
+  ],
+  "author": "@brandonhorst",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brandonhorst/lacona-phrase-repeat/issues"
+  },
+  "homepage": "https://github.com/brandonhorst/lacona-phrase-repeat"
+}

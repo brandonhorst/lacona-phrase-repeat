@@ -1,0 +1,362 @@
+"use strict";
+
+var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { "default": obj }; };
+
+var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+/** @jsx phrase.createElement */
+/* eslint-env mocha */
+
+var expect = require("chai").expect;
+
+var fulltext = _interopRequire(require("lacona-util-fulltext"));
+
+var lacona = _interopRequireWildcard(require("lacona"));
+
+var phrase = _interopRequireWildcard(require("lacona-phrase"));
+
+var Repeat = _interopRequire(require(".."));
+
+function from(i) {
+  var a = [];var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = i[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var x = _step.value;
+      a.push(x);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator["return"]) {
+        _iterator["return"]();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return a;
+}
+
+describe("repeat", function () {
+  var parser = undefined;
+
+  beforeEach(function () {
+    parser = new lacona.Parser();
+  });
+
+  describe("separator", function () {
+    it("does not accept input that does not match the child", function () {
+      parser.sentences = [phrase.createElement(
+        Repeat,
+        null,
+        phrase.createElement(
+          "content",
+          null,
+          phrase.createElement("literal", { text: "super" })
+        ),
+        phrase.createElement(
+          "separator",
+          null,
+          phrase.createElement("literal", { text: "man" })
+        )
+      )];
+
+      var data = from(parser.parse("wrong"));
+      expect(data).to.have.length(0);
+    });
+
+    it("accepts the child on its own", function () {
+      parser.sentences = [phrase.createElement(
+        Repeat,
+        null,
+        phrase.createElement(
+          "content",
+          null,
+          phrase.createElement("literal", { text: "super" })
+        ),
+        phrase.createElement(
+          "separator",
+          null,
+          phrase.createElement("literal", { text: "man" })
+        )
+      )];
+
+      var data = from(parser.parse("superm"));
+      expect(data).to.have.length(1);
+      expect(fulltext.match(data[0])).to.equal("super");
+      expect(fulltext.suggestion(data[0])).to.equal("man");
+      expect(fulltext.completion(data[0])).to.equal("super");
+    });
+
+    it("accepts the child twice, with the separator in the middle", function () {
+      parser.sentences = [phrase.createElement(
+        Repeat,
+        null,
+        phrase.createElement(
+          "content",
+          null,
+          phrase.createElement("literal", { text: "super" })
+        ),
+        phrase.createElement(
+          "separator",
+          null,
+          phrase.createElement("literal", { text: "man" })
+        )
+      )];
+
+      var data = from(parser.parse("supermans"));
+      expect(data).to.have.length(1);
+      expect(fulltext.suggestion(data[0])).to.equal("super");
+    });
+
+    it("allows for content to have children", function () {
+      parser.sentences = [phrase.createElement(
+        Repeat,
+        null,
+        phrase.createElement(
+          "content",
+          null,
+          phrase.createElement(
+            "choice",
+            null,
+            phrase.createElement("literal", { text: "a" }),
+            phrase.createElement("literal", { text: "b" })
+          )
+        ),
+        phrase.createElement(
+          "separator",
+          null,
+          phrase.createElement("literal", { text: " " })
+        )
+      )];
+
+      var data = from(parser.parse("a"));
+      expect(data).to.have.length(3);
+      expect(fulltext.all(data[0])).to.equal("a");
+      expect(fulltext.all(data[1])).to.equal("a a");
+      expect(fulltext.all(data[2])).to.equal("a b");
+    });
+  });
+
+  it("allows for content to have children", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      null,
+      phrase.createElement(
+        "choice",
+        null,
+        phrase.createElement("literal", { text: "a" }),
+        phrase.createElement("literal", { text: "b" })
+      )
+    )];
+
+    var data = from(parser.parse(""));
+    expect(data).to.have.length(6);
+    expect(fulltext.all(data[0])).to.equal("a");
+    expect(fulltext.all(data[1])).to.equal("b");
+    expect(fulltext.all(data[2])).to.equal("aa");
+    expect(fulltext.all(data[3])).to.equal("ab");
+    expect(fulltext.all(data[4])).to.equal("ba");
+    expect(fulltext.all(data[5])).to.equal("bb");
+  });
+
+  it("does not accept input that does not match the child", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      null,
+      phrase.createElement("literal", { text: "super" })
+    )];
+    var data = from(parser.parse("wrong"));
+    expect(data).to.have.length(0);
+  });
+
+  it("accepts the child on its own", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      null,
+      phrase.createElement("literal", { text: "super" })
+    )];
+
+    var data = from(parser.parse("sup"));
+    expect(data).to.have.length(2);
+    expect(fulltext.all(data[0])).to.equal("super");
+    expect(fulltext.all(data[1])).to.equal("supersuper");
+  });
+
+  it("accepts the child twice", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      null,
+      phrase.createElement("literal", { text: "super" })
+    )];
+
+    var data = from(parser.parse("supers"));
+    expect(data).to.have.length(2);
+    expect(fulltext.all(data[0])).to.equal("supersuper");
+    expect(fulltext.all(data[1])).to.equal("supersupersuper");
+  });
+
+  it("creates an array from the values of the children", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      null,
+      phrase.createElement("literal", { text: "super", value: "testValue" })
+    )];
+
+    var data = from(parser.parse("sup"));
+    expect(data).to.have.length(2);
+    expect(data[0].result).to.eql(["testValue"]);
+    expect(data[1].result).to.eql(["testValue", "testValue"]);
+  });
+
+  it("does not accept fewer than min iterations", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      { min: 2 },
+      phrase.createElement(
+        "content",
+        null,
+        phrase.createElement("literal", { text: "a" })
+      ),
+      phrase.createElement(
+        "separator",
+        null,
+        phrase.createElement("literal", { text: "b" })
+      )
+    )];
+
+    var data = from(parser.parse("a"));
+    expect(data).to.have.length(1);
+    expect(fulltext.match(data[0])).to.equal("a");
+    expect(fulltext.suggestion(data[0])).to.equal("b");
+    expect(fulltext.completion(data[0])).to.equal("a");
+  });
+
+  it("does not accept more than max iterations", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      { max: 1 },
+      phrase.createElement(
+        "content",
+        null,
+        phrase.createElement("literal", { text: "a" })
+      ),
+      phrase.createElement(
+        "separator",
+        null,
+        phrase.createElement("literal", { text: "b" })
+      )
+    )];
+
+    var data = from(parser.parse("a"));
+    expect(data).to.have.length(1);
+    expect(fulltext.suggestion(data[0])).to.equal("");
+    expect(fulltext.match(data[0])).to.equal("a");
+  });
+
+  it("passes on its category", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      { category: "myCat" },
+      phrase.createElement("literal", { text: "a" })
+    )];
+
+    var data = from(parser.parse(""));
+    expect(data).to.have.length(2);
+    expect(data[0].suggestion[0].category).to.equal("myCat");
+    expect(data[1].suggestion[0].category).to.equal("myCat");
+    expect(data[1].completion[0].category).to.equal("myCat");
+  });
+
+  it("rejects non-unique repeated elements", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      { unique: true },
+      phrase.createElement(
+        "choice",
+        null,
+        phrase.createElement("literal", { text: "a", value: "a" }),
+        phrase.createElement("literal", { text: "b", value: "b" })
+      )
+    )];
+
+    var data = from(parser.parse("aa"));
+    expect(data).to.have.length(0);
+  });
+
+  it("accepts unique repeated elements", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      { unique: true },
+      phrase.createElement(
+        "choice",
+        null,
+        phrase.createElement("literal", { text: "a", value: "a" }),
+        phrase.createElement("literal", { text: "b", value: "b" })
+      )
+    )];
+
+    var data = from(parser.parse(""));
+    expect(data).to.have.length(4);
+    expect(fulltext.all(data[0])).to.equal("a");
+    expect(fulltext.all(data[1])).to.equal("b");
+    expect(fulltext.all(data[2])).to.equal("ab");
+    expect(fulltext.all(data[3])).to.equal("ba");
+  });
+
+  it("allows for choices inside of repeats to be limited", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      null,
+      phrase.createElement(
+        "choice",
+        { limit: 1 },
+        phrase.createElement("literal", { text: "aa" }),
+        phrase.createElement("literal", { text: "ab" }),
+        phrase.createElement("literal", { text: "ac" })
+      )
+    )];
+
+    var data = from(parser.parse("aba"));
+    expect(data).to.have.length(2);
+    expect(fulltext.all(data[0])).to.equal("abaa");
+    expect(fulltext.all(data[1])).to.equal("abaaaa");
+  });
+
+  it("allows for choices inside of repeat separators to be limited", function () {
+    parser.sentences = [phrase.createElement(
+      Repeat,
+      null,
+      phrase.createElement(
+        "content",
+        null,
+        phrase.createElement("literal", { text: "x" })
+      ),
+      phrase.createElement(
+        "separator",
+        null,
+        phrase.createElement(
+          "choice",
+          { limit: 1 },
+          phrase.createElement("literal", { text: "aa" }),
+          phrase.createElement("literal", { text: "ab" }),
+          phrase.createElement("literal", { text: "ac" })
+        )
+      )
+    )];
+
+    var data = from(parser.parse("xa"));
+    expect(data).to.have.length(1);
+    expect(fulltext.match(data[0])).to.equal("x");
+    expect(fulltext.suggestion(data[0])).to.equal("aa");
+    expect(fulltext.completion(data[0])).to.equal("x");
+  });
+});
