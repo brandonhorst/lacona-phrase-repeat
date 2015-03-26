@@ -6,7 +6,7 @@ import * as lacona from 'lacona'
 import * as phrase from 'lacona-phrase'
 import Repeat from '..'
 
-function from(i) {const a = []; for (let x of i) a.push(x); return a}
+function from (i) {const a = []; for (let x of i) a.push(x); return a}
 
 describe('repeat', () => {
   let parser

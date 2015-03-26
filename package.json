@@ -8,14 +8,14 @@
   },
   "dependencies": {
     "lacona-phrase": "^0.6.1",
-    "lodash": "^3.5.0"
+    "lodash": "^3.6.0"
   },
   "devDependencies": {
     "lacona-util-fulltext": "^0.2.0",
     "rimraf": "^2.3.2",
     "babel": "^4.7.16",
     "chai": "^2.1.2",
-    "lacona": "^0.21.0",
+    "lacona": "^0.22.0",
     "mocha": "^2.2.1"
   },
   "scripts": {
