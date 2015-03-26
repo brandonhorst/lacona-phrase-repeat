@@ -135,15 +135,17 @@ describe('repeat', () => {
 
   it('creates an array from the values of the children', () => {
     parser.sentences = [
-      <Repeat>
-        <literal text='super' value='testValue' />
+      <Repeat max={2}>
+        <choice>
+          <literal text='super' value='super' />
+          <literal text='man' value='man' />
+        </choice>
       </Repeat>
     ]
 
-    const data = from(parser.parse('sup'))
-    expect(data).to.have.length(2)
-    expect(data[0].result).to.eql(['testValue'])
-    expect(data[1].result).to.eql(['testValue', 'testValue'])
+    const data = from(parser.parse('superm'))
+    expect(data).to.have.length(1)
+    expect(data[0].result).to.eql(['super', 'man'])
   })
 
   it('does not accept fewer than min iterations', () => {

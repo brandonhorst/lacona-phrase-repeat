@@ -22,7 +22,7 @@ export default class Repeat extends Phrase {
   getValue(result) {
     if (_.isPlainObject(result) && result.repeat) {
       if (result.child) {
-        return result.repeat.concat([result.child])
+        return [result.child].concat(result.repeat)
       } else {
         return result.repeat
       }
